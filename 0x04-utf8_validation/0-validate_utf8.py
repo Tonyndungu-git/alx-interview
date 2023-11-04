@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 def validUTF8(data):
     """Checks if a list of integers are valid UTF-8 codepoints.
     """
