@@ -1,24 +1,25 @@
-const axios = require('axios');
-const movieId = process.argv[2]
+#!/usr/bin/node
+const request = require('request');
+const API_URL = 'https://swapi-api.hbtn.io/api';
 
-if (!movieId) {
-    console.error("provide valid movie ID")
-    process.exit(1);
+if (process.argv.length > 2) {
+  request(`${API_URL}/films/${process.argv[2]}/`, (err, _, body) => {
+    if (err) {
+      console.log(err);
+    }
+    const charactersURL = JSON.parse(body).characters;
+    const charactersName = charactersURL.map(
+      url => new Promise((resolve, reject) => {
+        request(url, (promiseErr, __, charactersReqBody) => {
+          if (promiseErr) {
+            reject(promiseErr);
+          }
+          resolve(JSON.parse(charactersReqBody).name);
+        });
+      }));
 
+    Promise.all(charactersName)
+      .then(names => console.log(names.join('\n')))
+      .catch(allErr => console.log(allErr));
+  });
 }
-
-const SWAPI_URL = 'https://swapi.dev/api'
-axios.get(`${SWAPI_URL}/films/${movieId}/`)
-    .then(response => {
-
-	const characters = response.data.characters;
-	const characterPromises = characters.map(characterUrl => axios.get(characterUrl));
-
-	Promise.all(characterPromises)
-	    .then(characterResponses =>{
-		const characterNames = characterResponses.map(response => response.data.name);
-		characterNames.forEach(name => console.log(name));
-	    })
-	    .catch(error => console.error(error));
-    })
-    .catch(error =>console.error(error));
