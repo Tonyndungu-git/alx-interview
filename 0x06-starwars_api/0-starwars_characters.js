@@ -1,33 +1,25 @@
 #!/usr/bin/node
 const request = require('request');
+const API_URL = 'https://swapi-api.hbtn.io/api';
 
-const movieId = process.argv[2];
-
-if (!movieId) {
-    console.error("Please provide a valid Movie ID as a command line argument.");
-    process.exit(1);
-}
-
-const SWAPI_URL = 'https://swapi.dev/api';
-
-request(`${SWAPI_URL}/films/${movieId}/`, (error, response, body) => {
-    if (error) {
-        console.error('Error fetching movie data:', error);
-        return;
+if (process.argv.length > 2) {
+  request(`${API_URL}/films/${process.argv[2]}/`, (err, _, body) => {
+    if (err) {
+      console.log(err);
     }
-
-    const movie = JSON.parse(body);
-    const characterUrls = movie.characters;
-
-    characterUrls.forEach(characterUrl => {
-        request(characterUrl, (error, response, body) => {
-            if (error) {
-                console.error('Error fetching character data:', error);
-                return;
-            }
-
-            const character = JSON.parse(body);
-            console.log(character.name);
+    const charactersURL = JSON.parse(body).characters;
+    const charactersName = charactersURL.map(
+      url => new Promise((resolve, reject) => {
+        request(url, (promiseErr, __, charactersReqBody) => {
+          if (promiseErr) {
+            reject(promiseErr);
+          }
+          resolve(JSON.parse(charactersReqBody).name);
         });
-    });
-});
+      }));
+
+    Promise.all(charactersName)
+      .then(names => console.log(names.join('\n')))
+      .catch(allErr => console.log(allErr));
+  });
+}
