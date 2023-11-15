@@ -10,14 +10,14 @@ def rotate_2d_matrix(matrix):
     cols = len(matrix[0])
     if not all(map(lambda x: len(x) == cols, matrix)):
         return
-
-    n = len(matrix)
-
-    """Transpose the matrix"""
-    for i in range(n):
-        for j in range(i+1, n):
-            matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]
-
-    """Reverse each row"""
-    for i in range(n):
-        matrix[i] = matrix[i][::-1]
+    c, r = 0, rows - 1
+    for i in range(cols * rows):
+        if i % rows == 0:
+            matrix.append([])
+        if r == -1:
+            r = rows - 1
+            c += 1
+        matrix[-1].append(matrix[r][c])
+        if c == cols - 1 and r >= -1:
+            matrix.pop(r)
+        r -= 1
